@@ -1,8 +1,6 @@
 package trade
 
-import (
-	"github.com/amir-the-h/okex"
-)
+import okex "github.com/pefish/go-okx"
 
 type (
 	PlaceOrder struct {

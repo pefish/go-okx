@@ -1,7 +1,7 @@
 package publicdata
 
 import (
-	"github.com/amir-the-h/okex"
+	"github.com/pefish/go-okx"
 )
 
 type (
@@ -27,6 +27,7 @@ type (
 		CtType    okex.ContractType    `json:"ctType,omitempty"`
 		Alias     okex.AliasType       `json:"alias,omitempty"`
 		State     okex.InstrumentState `json:"state"`
+		MaxMktSz  okex.JSONFloat64     `json:"maxMktSz,omitempty"`
 	}
 	DeliveryExerciseHistory struct {
 		Details []*DeliveryExerciseHistoryDetails `json:"details"`

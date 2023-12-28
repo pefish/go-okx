@@ -1,6 +1,6 @@
 package public
 
-import "github.com/amir-the-h/okex"
+import "github.com/pefish/go-okx"
 
 type (
 	GetInstruments struct {

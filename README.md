@@ -1,14 +1,14 @@
 okex
 ====
-[![Go Reference](https://pkg.go.dev/badge/github.com/amir-the-h/okex.svg)](https://pkg.go.dev/github.com/amir-the-h/okex)
-[![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/amir-the-h/okex.svg)](https://github.com/amir-the-h/okex)
-[![GoReportCard example](https://goreportcard.com/badge/github.com/amir-the-h/okex)](https://goreportcard.com/report/github.com/amir-the-h/okex)
-[![GitHub license](https://img.shields.io/github/license/amir-the-h/okex.svg)](https://github.com/amir-the-h/okex/blob/main/LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/pefish/go-okx.svg)](https://pkg.go.dev/github.com/pefish/go-okx)
+[![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/amir-the-h/okex.svg)](https://github.com/pefish/go-okx)
+[![GoReportCard example](https://goreportcard.com/badge/github.com/pefish/go-okx)](https://goreportcard.com/report/github.com/pefish/go-okx)
+[![GitHub license](https://img.shields.io/github/license/amir-the-h/okex.svg)](https://github.com/pefish/go-okx/blob/main/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/amir-the-h/okex.svg)](https://GitHub.com/amir-the-h/okex/releases/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![CI](https://github.com/amir-the-h/okex/actions/workflows/main.yml/badge.svg)](https://github.com/amir-the-h/okex/actions/workflows/main.yml)
-[![CodeQL](https://github.com/amir-the-h/okex/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/amir-the-h/okex/actions/workflows/codeql-analysis.yml)
-[![AutoRelease](https://github.com/amir-the-h/okex/actions/workflows/release.yml/badge.svg)](https://github.com/amir-the-h/okex/actions/workflows/release.yml)
+[![CI](https://github.com/pefish/go-okx/actions/workflows/main.yml/badge.svg)](https://github.com/pefish/go-okx/actions/workflows/main.yml)
+[![CodeQL](https://github.com/pefish/go-okx/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/pefish/go-okx/actions/workflows/codeql-analysis.yml)
+[![AutoRelease](https://github.com/pefish/go-okx/actions/workflows/release.yml/badge.svg)](https://github.com/pefish/go-okx/actions/workflows/release.yml)
 
 *NOTICE:*
 > PACKAGE IS CURRENTLY UNDER HEAVY DEVELOPMENT AND THERE IS NO GUARANTY FOR STABILITY.
@@ -25,7 +25,7 @@ Installation
 -----------------
 
 ```bash
-go get github.com/amir-the-h/okex@v1.1.4-alpha
+go get github.com/pefish/go-okx@v1.1.4-alpha
 ```
 
 Usage
@@ -36,11 +36,11 @@ package main
 
 import (
   "context"
-  "github.com/amir-the-h/okex"
-  "github.com/amir-the-h/okex/api"
-  "github.com/amir-the-h/okex/events"
-  "github.com/amir-the-h/okex/events/public"
-  ws_public_requests "github.com/amir-the-h/okex/requests/ws/public"
+  "github.com/pefish/go-okx"
+  "github.com/pefish/go-okx/api"
+  "github.com/pefish/go-okx/events"
+  "github.com/pefish/go-okx/events/public"
+  ws_public_requests "github.com/pefish/go-okx/requests/ws/public"
   "log"
 )
 
@@ -138,4 +138,4 @@ Features
 * Fully automated authorization steps for both [REST](/api/rest) and [WS](/api/ws)
 * To receive websocket events you can choose [RawEventChan](/api/ws/client.go#L25)
   , [StructuredEventChan](/api/ws/client.go#L28), or provide your own
-  channels. [More info](https://github.com/amir-the-h/okex/wiki/Handling-WS-events) 
+  channels. [More info](https://github.com/pefish/go-okx/wiki/Handling-WS-events) 
