@@ -44,7 +44,17 @@ func do() error {
 			continue
 		}
 		fmt.Printf(
-			"产品id: %s, 上线时间: %s, 最大杠杆倍数: %f, 下单价格精度: %f, 下单数量精度: %f, 最小下单数量: %f, 市价单最大委托数量: %f\n",
+			`
+产品id: %s, 
+上线时间: %s, 
+最大杠杆倍数: %f, 
+下单价格精度: %f, 
+下单数量精度: %f, 
+最小下单数量: %f, 
+市价单最大委托数量: %f
+Uly: %s
+InstFamily: %s
+`,
 			instrument.InstID,
 			instrument.ListTime.String(),
 			instrument.Lever,
@@ -52,6 +62,8 @@ func do() error {
 			instrument.LotSz,
 			instrument.MinSz,
 			instrument.MaxMktSz,
+			instrument.Uly,
+			instrument.InstFamily,
 		)
 	}
 

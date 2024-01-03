@@ -20,6 +20,19 @@ func NewPublicData(c *ClientRest) *PublicData {
 	return &PublicData{c}
 }
 
+func (c *PublicData) GetFundingRate(req requests.GetFundingRate) (response responses.GetFundingRate, err error) {
+	p := "/api/v5/public/funding-rate"
+	m := okex.S2M(req)
+	res, err := c.client.Do(http.MethodGet, p, false, m)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	d := json.NewDecoder(res.Body)
+	err = d.Decode(&response)
+	return
+}
+
 // GetInstruments
 // Retrieve a list of instruments with open contracts.
 //
