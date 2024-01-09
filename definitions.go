@@ -61,6 +61,7 @@ const (
 	NormalServer Destination = iota
 	AwsServer
 	DemoServer
+	CandleWsServer
 
 	RestURL      = BaseURL("https://www.okx.com")
 	PublicWsURL  = BaseURL("wss://ws.okx.com:8443/ws/v5/public")
@@ -73,6 +74,8 @@ const (
 	DemoRestURL      = BaseURL("https://www.okx.com")
 	DemoPublicWsURL  = BaseURL("wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999")
 	DemoPrivateWsURL = BaseURL("wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999")
+
+	HandleWsURL = BaseURL("wss://ws.okx.com:8443/ws/v5/business")
 
 	SpotInstrument    = InstrumentType("SPOT")
 	MarginInstrument  = InstrumentType("MARGIN")
@@ -460,6 +463,14 @@ func (t BarSize) Duration() time.Duration {
 
 func S2M(i interface{}) map[string]string {
 	m := make(map[string]string)
+	j, _ := json.Marshal(i)
+	_ = json.Unmarshal(j, &m)
+
+	return m
+}
+
+func StructSlice2MapSlice(i interface{}) []map[string]string {
+	m := make([]map[string]string, 0)
 	j, _ := json.Marshal(i)
 	_ = json.Unmarshal(j, &m)
 

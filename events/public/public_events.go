@@ -49,7 +49,7 @@ type (
 		Books  []*market.OrderBookWs `json:"data"`
 		Action string                `json:"action"`
 	}
-	OPTIONSummary struct {
+	OptionSummary struct {
 		Arg     *events.Argument               `json:"arg"`
 		Options []*publicdata.OptionMarketData `json:"data"`
 	}

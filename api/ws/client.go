@@ -131,36 +131,15 @@ func (c *ClientWs) Login() error {
 // Users can choose to subscribe to one or more channels, and the total length of multiple channels cannot exceed 4096 bytes.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-subscribe
-func (c *ClientWs) Subscribe(p bool, ch []okex.ChannelName, args map[string]string) error {
-	count := 1
-	if len(ch) != 0 {
-		count = len(ch)
-	}
-	tmpArgs := make([]map[string]string, count)
-	tmpArgs[0] = args
-	for i, name := range ch {
-		tmpArgs[i] = map[string]string{}
-		tmpArgs[i]["channel"] = string(name)
-		for k, v := range args {
-			tmpArgs[i][k] = v
-		}
-	}
-	return c.Send(p, okex.SubscribeOperation, tmpArgs)
+func (c *ClientWs) Subscribe(p bool, args []map[string]string) error {
+	return c.Send(p, okex.SubscribeOperation, args)
 }
 
 // Unsubscribe into channel(s)
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-unsubscribe
-func (c *ClientWs) Unsubscribe(p bool, ch []okex.ChannelName, args map[string]string) error {
-	tmpArgs := make([]map[string]string, len(ch))
-	for i, name := range ch {
-		tmpArgs[i] = make(map[string]string)
-		tmpArgs[i]["channel"] = string(name)
-		for k, v := range args {
-			tmpArgs[i][k] = v
-		}
-	}
-	return c.Send(p, okex.UnsubscribeOperation, tmpArgs)
+func (c *ClientWs) Unsubscribe(p bool, args []map[string]string) error {
+	return c.Send(p, okex.UnsubscribeOperation, args)
 }
 
 // Send message through either connections
@@ -194,15 +173,6 @@ func (c *ClientWs) Send(p bool, op okex.Operation, args []map[string]string, ext
 	}
 	c.sendChan[p] <- j
 	return nil
-}
-
-// SetChannels to receive certain events on separate channel
-func (c *ClientWs) SetChannels(errCh chan *events.Error, subCh chan *events.Subscribe, unSub chan *events.Unsubscribe, lCh chan *events.Login, sCh chan *events.Success) {
-	c.ErrChan = errCh
-	c.SubscribeChan = subCh
-	c.UnsubscribeCh = unSub
-	c.LoginChan = lCh
-	c.SuccessChan = sCh
 }
 
 // WaitForAuthorization waits for the auth response and try to log in if it was needed

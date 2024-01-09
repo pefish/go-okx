@@ -15,20 +15,20 @@ import (
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels
 type Public struct {
 	*ClientWs
-	iCh    chan *public.Instruments
-	tCh    chan *public.Tickers
-	oiCh   chan *public.OpenInterest
-	cCh    chan *public.Candlesticks
-	trCh   chan *public.Trades
-	edepCh chan *public.EstimatedDeliveryExercisePrice
-	mpCh   chan *public.MarkPrice
-	mpcCh  chan *public.MarkPriceCandlesticks
-	plCh   chan *public.PriceLimit
-	obCh   chan *public.OrderBook
-	osCh   chan *public.OPTIONSummary
-	frCh   chan *public.FundingRate
-	icCh   chan *public.IndexCandlesticks
-	itCh   chan *public.IndexTickers
+	InstrumentsCh                    chan *public.Instruments
+	TickersCh                        chan *public.Tickers
+	OpenInterestCh                   chan *public.OpenInterest
+	CandlesticksCh                   chan *public.Candlesticks
+	TradesCh                         chan *public.Trades
+	EstimatedDeliveryExercisePriceCh chan *public.EstimatedDeliveryExercisePrice
+	MarkPriceCh                      chan *public.MarkPrice
+	MarkPriceCandlesticksCh          chan *public.MarkPriceCandlesticks
+	PriceLimitCh                     chan *public.PriceLimit
+	OrderBookCh                      chan *public.OrderBook
+	OptionSummaryCh                  chan *public.OptionSummary
+	FundingRateCh                    chan *public.FundingRate
+	IndexCandlesticksCh              chan *public.IndexCandlesticks
+	IndexTickersCh                   chan *public.IndexTickers
 }
 
 // NewPublic returns a pointer to a fresh Public
@@ -40,115 +40,138 @@ func NewPublic(c *ClientWs) *Public {
 // The full instrument list will be pushed for the first time after subscription. Subsequently, the instruments will be pushed if there's any change to the instrument’s state (such as delivery of FUTURES, exercise of OPTION, listing of new contracts / trading pairs, trading suspension, etc.).
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-instruments-channel
-func (c *Public) Instruments(req requests.Instruments, ch ...chan *public.Instruments) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.iCh = ch[0]
+func (c *Public) Instruments(req []requests.Instruments, ch ...chan *public.Instruments) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "instruments"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"instruments"}, m)
+	if len(ch) > 0 {
+		c.InstrumentsCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UInstruments
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-instruments-channel
-func (c *Public) UInstruments(req requests.Instruments, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.iCh = nil
+func (c *Public) UInstruments(req []requests.Instruments, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "instruments"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"instruments"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.InstrumentsCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // Tickers
 // Retrieve the last traded price, bid price, ask price and 24-hour trading volume of instruments. Data will be pushed every 100 ms.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-tickers-channel
-func (c *Public) Tickers(req requests.Tickers, ch ...chan *public.Tickers) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.tCh = ch[0]
+func (c *Public) Tickers(req []requests.Tickers, ch ...chan *public.Tickers) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "tickers"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"tickers"}, m)
+	if len(ch) > 0 {
+		c.TickersCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UTickers
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-tickers-channel
-func (c *Public) UTickers(req requests.Tickers, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.tCh = nil
+func (c *Public) UTickers(req []requests.Tickers, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "tickers"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"tickers"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.TickersCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // OpenInterest
 // Retrieve the open interest. Data will by pushed every 3 seconds.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-open-interest-channel
-func (c *Public) OpenInterest(req requests.OpenInterest, ch ...chan *public.OpenInterest) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.oiCh = ch[0]
+func (c *Public) OpenInterest(req []requests.OpenInterest, ch ...chan *public.OpenInterest) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "open-interest"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"open-interest"}, m)
+	if len(ch) > 0 {
+		c.OpenInterestCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UOpenInterest
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-open-interest-channel
-func (c *Public) UOpenInterest(req requests.OpenInterest, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.oiCh = nil
+func (c *Public) UOpenInterest(req []requests.OpenInterest, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "open-interest"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"open-interest"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.OpenInterestCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // Candlesticks
 // Retrieve the open interest. Data will by pushed every 3 seconds.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-candlesticks-channel
-func (c *Public) Candlesticks(req requests.Candlesticks, ch ...chan *public.Candlesticks) error {
-	m := okex.S2M(req)
+func (c *Public) Candlesticks(req []requests.Candlesticks, ch ...chan *public.Candlesticks) error {
 	if len(ch) > 0 {
-		c.cCh = ch[0]
+		c.CandlesticksCh = ch[0]
 	}
-	return c.Subscribe(false, []okex.ChannelName{}, m)
+	return c.Subscribe(false, okex.StructSlice2MapSlice(req))
 }
 
 // UCandlesticks
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-candlesticks-channel
-func (c *Public) UCandlesticks(req requests.Candlesticks, rCh ...bool) error {
-	m := okex.S2M(req)
+func (c *Public) UCandlesticks(req []requests.Candlesticks, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
 	if len(rCh) > 0 && rCh[0] {
-		c.cCh = nil
+		c.CandlesticksCh = nil
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{}, m)
+	return c.Unsubscribe(false, m)
 }
 
 // Trades
 // Retrieve the recent trades data. Data will be pushed whenever there is a trade.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-trades-channel
-func (c *Public) Trades(req requests.Trades, ch ...chan *public.Trades) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.trCh = ch[0]
+func (c *Public) Trades(req []requests.Trades, ch ...chan *public.Trades) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "trades"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"trades"}, m)
+	if len(ch) > 0 {
+		c.TradesCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UTrades
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-trades-channel
-func (c *Public) UTrades(req requests.Trades, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.trCh = nil
+func (c *Public) UTrades(req []requests.Trades, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "trades"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"trades"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.TradesCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // EstimatedDeliveryExercisePrice
@@ -157,94 +180,116 @@ func (c *Public) UTrades(req requests.Trades, rCh ...bool) error {
 // Only the estimated delivery/exercise price will be pushed an hour before delivery/exercise, and will be pushed if there is any price change.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-estimated-delivery-exercise-price-channel
-func (c *Public) EstimatedDeliveryExercisePrice(req requests.EstimatedDeliveryExercisePrice, ch ...chan *public.EstimatedDeliveryExercisePrice) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.edepCh = ch[0]
+func (c *Public) EstimatedDeliveryExercisePrice(req []requests.EstimatedDeliveryExercisePrice, ch ...chan *public.EstimatedDeliveryExercisePrice) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "estimated-price"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"estimated-price"}, m)
+	if len(ch) > 0 {
+		c.EstimatedDeliveryExercisePriceCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UEstimatedDeliveryExercisePrice
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-estimated-delivery-exercise-price-channel
-func (c *Public) UEstimatedDeliveryExercisePrice(req requests.EstimatedDeliveryExercisePrice, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.edepCh = nil
+func (c *Public) UEstimatedDeliveryExercisePrice(req []requests.EstimatedDeliveryExercisePrice, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "estimated-price"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"estimated-price"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.EstimatedDeliveryExercisePriceCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // MarkPrice
 // Retrieve the mark price. Data will be pushed every 200 ms when the mark price changes, and will be pushed every 10 seconds when the mark price does not change.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-mark-price-channel
-func (c *Public) MarkPrice(req requests.MarkPrice, ch ...chan *public.MarkPrice) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.mpCh = ch[0]
+func (c *Public) MarkPrice(req []requests.MarkPrice, ch ...chan *public.MarkPrice) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "mark-price"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"mark-price"}, m)
+	if len(ch) > 0 {
+		c.MarkPriceCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UMarkPrice
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-mark-price-channel
-func (c *Public) UMarkPrice(req requests.MarkPrice, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.mpCh = nil
+func (c *Public) UMarkPrice(req []requests.MarkPrice, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "mark-price"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"mark-price"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.MarkPriceCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // MarkPriceCandlesticks
 // Retrieve the candlesticks data of the mark price. Data will be pushed every 500 ms.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-mark-price-candlesticks-channel
-func (c *Public) MarkPriceCandlesticks(req requests.MarkPriceCandlesticks, ch ...chan *public.MarkPriceCandlesticks) error {
-	m := okex.S2M(req)
-	m["channel"] = "mark-price-" + m["channel"]
-	if len(ch) > 0 {
-		c.mpcCh = ch[0]
+func (c *Public) MarkPriceCandlesticks(req []requests.MarkPriceCandlesticks, ch ...chan *public.MarkPriceCandlesticks) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "mark-price-" + m[i]["channel"]
 	}
-	return c.Subscribe(false, []okex.ChannelName{}, m)
+	if len(ch) > 0 {
+		c.MarkPriceCandlesticksCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UMarkPriceCandlesticks
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-mark-price-candlesticks-channel
-func (c *Public) UMarkPriceCandlesticks(req requests.MarkPriceCandlesticks, rCh ...bool) error {
-	m := okex.S2M(req)
-	m["channel"] = "mark-price-" + m["channel"]
-	if len(rCh) > 0 && rCh[0] {
-		c.mpcCh = nil
+func (c *Public) UMarkPriceCandlesticks(req []requests.MarkPriceCandlesticks, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "mark-price-" + m[i]["channel"]
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.MarkPriceCandlesticksCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // PriceLimit
 // Retrieve the maximum buy price and minimum sell price of the instrument. Data will be pushed every 5 seconds when there are changes in limits, and will not be pushed when there is no changes on limit.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-price-limit-channel
-func (c *Public) PriceLimit(req requests.PriceLimit, ch ...chan *public.PriceLimit) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.plCh = ch[0]
+func (c *Public) PriceLimit(req []requests.PriceLimit, ch ...chan *public.PriceLimit) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "price-limit"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"price-limit"}, m)
+	if len(ch) > 0 {
+		c.PriceLimitCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UPriceLimit
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-price-limit-channel
-func (c *Public) UPriceLimit(req requests.PriceLimit, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.plCh = nil
+func (c *Public) UPriceLimit(req []requests.PriceLimit, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "price-limit"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"price-limit"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.PriceLimitCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // OrderBook
@@ -253,117 +298,133 @@ func (c *Public) UPriceLimit(req requests.PriceLimit, rCh ...bool) error {
 // Use books for 400 depth levels, book5 for 5 depth levels, books50-l2-tbt tick-by-tick 50 depth levels, and books-l2-tbt for tick-by-tick 400 depth levels.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-order-book-channel
-func (c *Public) OrderBook(req requests.OrderBook, ch ...chan *public.OrderBook) error {
-	m := okex.S2M(req)
+func (c *Public) OrderBook(req []requests.OrderBook, ch ...chan *public.OrderBook) error {
+	m := okex.StructSlice2MapSlice(req)
 	if len(ch) > 0 {
-		c.obCh = ch[0]
+		c.OrderBookCh = ch[0]
 	}
-	return c.Subscribe(false, []okex.ChannelName{}, m)
+	return c.Subscribe(false, m)
 }
 
 // UOrderBook
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-order-book-channel
-func (c *Public) UOrderBook(req requests.OrderBook, rCh ...bool) error {
-	m := okex.S2M(req)
+func (c *Public) UOrderBook(req []requests.OrderBook, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
 	if len(rCh) > 0 && rCh[0] {
-		c.obCh = nil
+		c.OrderBookCh = nil
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{okex.ChannelName(req.Channel)}, m)
+	return c.Unsubscribe(false, m)
 }
 
 // OPTIONSummary
 // Retrieve detailed pricing information of all OPTION contracts. Data will be pushed at once.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-option-summary-channel
-func (c *Public) OPTIONSummary(req requests.OPTIONSummary, ch ...chan *public.OPTIONSummary) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.osCh = ch[0]
+func (c *Public) OPTIONSummary(req []requests.OPTIONSummary, ch ...chan *public.OptionSummary) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "opt-summary"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"opt-summary"}, m)
+	if len(ch) > 0 {
+		c.OptionSummaryCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UOPTIONSummary
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-option-summary-channel
-func (c *Public) UOPTIONSummary(req requests.OPTIONSummary, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.osCh = nil
+func (c *Public) UOPTIONSummary(req []requests.OPTIONSummary, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "opt-summary"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"opt-summary"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.OptionSummaryCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // FundingRate
 // Retrieve funding rate. Data will be pushed every minute.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-funding-rate-channel
-func (c *Public) FundingRate(req requests.FundingRate, ch ...chan *public.FundingRate) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.frCh = ch[0]
+func (c *Public) FundingRate(req []requests.FundingRate, ch ...chan *public.FundingRate) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "funding-rate"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"funding-rate"}, m)
+	if len(ch) > 0 {
+		c.FundingRateCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UFundingRate
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-funding-rate-channel
-func (c *Public) UFundingRate(req requests.FundingRate, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.frCh = nil
+func (c *Public) UFundingRate(req []requests.FundingRate, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "funding-rate"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"funding-rate"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.FundingRateCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 // IndexCandlesticks
 // Retrieve the candlesticks data of the index. Data will be pushed every 500 ms.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-index-candlesticks-channel
-func (c *Public) IndexCandlesticks(req requests.IndexCandlesticks, ch ...chan *public.IndexCandlesticks) error {
-	m := okex.S2M(req)
-	m["channel"] = req.Channel
+func (c *Public) IndexCandlesticks(req []requests.IndexCandlesticks, ch ...chan *public.IndexCandlesticks) error {
+	m := okex.StructSlice2MapSlice(req)
 	if len(ch) > 0 {
-		c.icCh = ch[0]
+		c.IndexCandlesticksCh = ch[0]
 	}
-	return c.Subscribe(false, []okex.ChannelName{}, m)
+	return c.Subscribe(false, m)
 }
 
 // UIndexCandlesticks
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-index-candlesticks-channel
-func (c *Public) UIndexCandlesticks(req requests.IndexCandlesticks, rCh ...bool) error {
-	m := okex.S2M(req)
-	m["channel"] = req.Channel
+func (c *Public) UIndexCandlesticks(req []requests.IndexCandlesticks, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
 	if len(rCh) > 0 && rCh[0] {
-		c.icCh = nil
+		c.IndexCandlesticksCh = nil
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{}, m)
+	return c.Unsubscribe(false, m)
 }
 
 // IndexTickers
 // Retrieve index tickers data
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-index-tickers-channel
-func (c *Public) IndexTickers(req requests.IndexTickers, ch ...chan *public.IndexTickers) error {
-	m := okex.S2M(req)
-	if len(ch) > 0 {
-		c.itCh = ch[0]
+func (c *Public) IndexTickers(req []requests.IndexTickers, ch ...chan *public.IndexTickers) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "index-tickers"
 	}
-	return c.Subscribe(false, []okex.ChannelName{"index-tickers"}, m)
+	if len(ch) > 0 {
+		c.IndexTickersCh = ch[0]
+	}
+	return c.Subscribe(false, m)
 }
 
 // UIndexTickers
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-public-channels-index-tickers-channel
-func (c *Public) UIndexTickers(req requests.IndexTickers, rCh ...bool) error {
-	m := okex.S2M(req)
-	if len(rCh) > 0 && rCh[0] {
-		c.itCh = nil
+func (c *Public) UIndexTickers(req []requests.IndexTickers, rCh ...bool) error {
+	m := okex.StructSlice2MapSlice(req)
+	for i, _ := range m {
+		m[i]["channel"] = "index-tickers"
 	}
-	return c.Unsubscribe(false, []okex.ChannelName{"index-tickers"}, m)
+	if len(rCh) > 0 && rCh[0] {
+		c.IndexTickersCh = nil
+	}
+	return c.Unsubscribe(false, m)
 }
 
 func (c *Public) Process(data []byte, e *events.Basic) bool {
@@ -380,8 +441,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.iCh != nil {
-					c.iCh <- &e
+				if c.InstrumentsCh != nil {
+					c.InstrumentsCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -393,8 +454,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.tCh != nil {
-					c.tCh <- &e
+				if c.TickersCh != nil {
+					c.TickersCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -406,8 +467,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.oiCh != nil {
-					c.oiCh <- &e
+				if c.OpenInterestCh != nil {
+					c.OpenInterestCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -419,8 +480,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.trCh != nil {
-					c.trCh <- &e
+				if c.TradesCh != nil {
+					c.TradesCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -432,8 +493,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.edepCh != nil {
-					c.edepCh <- &e
+				if c.EstimatedDeliveryExercisePriceCh != nil {
+					c.EstimatedDeliveryExercisePriceCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -445,8 +506,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.mpCh != nil {
-					c.mpCh <- &e
+				if c.MarkPriceCh != nil {
+					c.MarkPriceCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -458,34 +519,34 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.plCh != nil {
-					c.plCh <- &e
+				if c.PriceLimitCh != nil {
+					c.PriceLimitCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
 			return true
 		case "opt-summary":
-			e := public.OPTIONSummary{}
+			e := public.OptionSummary{}
 			err := json.Unmarshal(data, &e)
 			if err != nil {
 				return false
 			}
 			go func() {
-				if c.osCh != nil {
-					c.osCh <- &e
+				if c.OptionSummaryCh != nil {
+					c.OptionSummaryCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
 			return true
 		case "funding-rate":
-			e := public.OPTIONSummary{}
+			e := public.FundingRate{}
 			err := json.Unmarshal(data, &e)
 			if err != nil {
 				return false
 			}
 			go func() {
-				if c.osCh != nil {
-					c.osCh <- &e
+				if c.FundingRateCh != nil {
+					c.FundingRateCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -497,8 +558,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				return false
 			}
 			go func() {
-				if c.itCh != nil {
-					c.itCh <- &e
+				if c.IndexTickersCh != nil {
+					c.IndexTickersCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
@@ -515,8 +576,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 					return false
 				}
 				go func() {
-					if c.mpcCh != nil {
-						c.mpcCh <- &e
+					if c.MarkPriceCandlesticksCh != nil {
+						c.MarkPriceCandlesticksCh <- &e
 					}
 					c.StructuredEventChan <- e
 				}()
@@ -530,8 +591,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 					return false
 				}
 				go func() {
-					if c.icCh != nil {
-						c.icCh <- &e
+					if c.IndexCandlesticksCh != nil {
+						c.IndexCandlesticksCh <- &e
 					}
 					c.StructuredEventChan <- e
 				}()
@@ -545,8 +606,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 					return false
 				}
 				go func() {
-					if c.cCh != nil {
-						c.cCh <- &e
+					if c.CandlesticksCh != nil {
+						c.CandlesticksCh <- &e
 					}
 					c.StructuredEventChan <- e
 				}()
@@ -560,8 +621,8 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 					return false
 				}
 				go func() {
-					if c.obCh != nil {
-						c.obCh <- &e
+					if c.OrderBookCh != nil {
+						c.OrderBookCh <- &e
 					}
 					c.StructuredEventChan <- e
 				}()

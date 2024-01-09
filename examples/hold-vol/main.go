@@ -29,6 +29,7 @@ func do() error {
 	}
 	res, err := client.Rest.PublicData.GetOpenInterest(public.GetOpenInterest{
 		InstType: "SWAP",
+		InstID:   "BTC-USDT-SWAP",
 	})
 	if err != nil {
 		return err
