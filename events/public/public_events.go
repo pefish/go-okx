@@ -65,4 +65,8 @@ type (
 		Arg     *events.Argument      `json:"arg"`
 		Tickers []*market.IndexTicker `json:"data"`
 	}
+	LiquidationOrders struct {
+		Arg               *events.Argument               `json:"arg"`
+		LiquidationOrders []*publicdata.LiquidationOrder `json:"data"`
+	}
 )

@@ -110,7 +110,7 @@ type (
 	LiquidationOrderDetail struct {
 		Ccy     string            `json:"ccy,omitempty"`
 		Side    okex.OrderSide    `json:"side"`
-		OosSide okex.PositionSide `json:"posSide"`
+		PosSide okex.PositionSide `json:"posSide"`
 		BkPx    okex.JSONFloat64  `json:"bkPx"`
 		Sz      okex.JSONFloat64  `json:"sz"`
 		BkLoss  okex.JSONFloat64  `json:"bkLoss"`

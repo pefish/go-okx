@@ -18,17 +18,6 @@ func main() {
 }
 
 func do() error {
-	handleClient, err := api.NewClient(
-		context.Background(),
-		"YOUR-API-KEY",
-		"YOUR-SECRET-KEY",
-		"YOUR-PASS-PHRASE",
-		okex.CandleWsServer,
-	)
-	if err != nil {
-		return err
-	}
-
 	client, err := api.NewClient(
 		context.Background(),
 		"YOUR-API-KEY",
@@ -42,41 +31,37 @@ func do() error {
 
 	log.Println("Starting")
 
-	handleClient.Ws.SubscribeChan = make(chan *events.Subscribe)
-	handleClient.Ws.UnsubscribeCh = make(chan *events.Unsubscribe)
-	handleClient.Ws.ErrChan = make(chan *events.Error)
-	handleClient.Ws.Public.CandlesticksCh = make(chan *public.Candlesticks)
-	//err = handleClient.Ws.Public.Subscribe(false, []map[string]string{
-	//	map[string]string{
-	//		"instId":  "BTC-USDT-SWAP",
-	//		"channel": "candle5m",
-	//	},
-	//})
-	//if err != nil {
-	//	return err
-	//}
-
 	client.Ws.SubscribeChan = make(chan *events.Subscribe)
 	client.Ws.UnsubscribeCh = make(chan *events.Unsubscribe)
 	client.Ws.ErrChan = make(chan *events.Error)
 	client.Ws.Public.FundingRateCh = make(chan *public.FundingRate)
 	client.Ws.Public.OpenInterestCh = make(chan *public.OpenInterest)
+	client.Ws.Public.MarkPriceCh = make(chan *public.MarkPrice)
+	client.Ws.Public.LiquidationOrdersCh = make(chan *public.LiquidationOrders)
 	err = client.Ws.Public.Subscribe(false, []map[string]string{
+		//map[string]string{
+		//	"channel": "funding-rate",
+		//	"instId":  "BTC-USDT-SWAP",
+		//},
+		//map[string]string{
+		//	"channel": "open-interest",
+		//	"instId":  "BTC-USDT-SWAP",
+		//},
+		//map[string]string{
+		//	"channel": "funding-rate",
+		//	"instId":  "ETH-USDT-SWAP",
+		//},
+		//map[string]string{
+		//	"channel": "open-interest",
+		//	"instId":  "ETH-USDT-SWAP",
+		//},
+		//map[string]string{
+		//	"channel": "mark-price",
+		//	"instId":  "BTC-USDT",
+		//},
 		map[string]string{
-			"channel": "funding-rate",
-			"instId":  "BTC-USDT-SWAP",
-		},
-		map[string]string{
-			"channel": "open-interest",
-			"instId":  "BTC-USDT-SWAP",
-		},
-		map[string]string{
-			"channel": "funding-rate",
-			"instId":  "ETH-USDT-SWAP",
-		},
-		map[string]string{
-			"channel": "open-interest",
-			"instId":  "ETH-USDT-SWAP",
+			"channel":  "liquidation-orders",
+			"instType": "SWAP",
 		},
 	})
 	if err != nil {
@@ -85,17 +70,6 @@ func do() error {
 
 	for {
 		select {
-		case sub := <-handleClient.Ws.SubscribeChan:
-			channel, _ := sub.Arg.Get("channel")
-			log.Printf("[Subscribed]\t%s", channel)
-		case uSub := <-handleClient.Ws.UnsubscribeCh:
-			channel, _ := uSub.Arg.Get("channel")
-			log.Printf("[Unsubscribed]\t%s", channel)
-		case err := <-handleClient.Ws.ErrChan:
-			log.Printf("[Error]\t%+v", err)
-			for _, datum := range err.Data {
-				log.Printf("[Error]\t\t%+v", datum)
-			}
 		case sub := <-client.Ws.SubscribeChan:
 			channel, _ := sub.Arg.Get("channel")
 			log.Printf("[Subscribed]\t%s", channel)
@@ -112,9 +86,11 @@ func do() error {
 				fmt.Printf(`
 symbol: %s
 hold vol: %f
+time: %s
 `,
 					p.InstID,
 					p.OiCcy,
+					p.TS.String(),
 				)
 			}
 		case f := <-client.Ws.Public.FundingRateCh:
@@ -122,30 +98,31 @@ hold vol: %f
 				fmt.Printf(`
 symbol: %s
 funding rate: %f
+time: %s
 `,
 					p.InstID,
 					p.FundingRate,
+					p.FundingTime.String(),
 				)
 			}
-		case i := <-handleClient.Ws.Public.CandlesticksCh:
-			symbol, _ := i.Arg.Get("instId")
-			for _, p := range i.Candles {
-				fmt.Printf(
-					`
+		case f := <-client.Ws.Public.MarkPriceCh:
+			for _, p := range f.Prices {
+				fmt.Printf(`
 symbol: %s
-high: %f
-open: %f
-low: %f
-close: %f
+price: %f
 time: %s
 `,
-					symbol,
-					p.H,
-					p.O,
-					p.L,
-					p.C,
+					p.InstID,
+					p.MarkPx,
 					p.TS.String(),
 				)
+			}
+		case f := <-client.Ws.Public.LiquidationOrdersCh:
+			for _, p := range f.LiquidationOrders {
+				fmt.Printf("symbol: %s\n", p.InstID)
+				for _, d := range p.Details {
+					fmt.Printf("\tside: %s, price: %f, quantity: %f, quantityU: %f, time: %s\n", d.PosSide, d.BkPx, d.Sz, d.BkPx*d.Sz, d.TS.String())
+				}
 			}
 		}
 	}

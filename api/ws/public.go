@@ -29,6 +29,7 @@ type Public struct {
 	FundingRateCh                    chan *public.FundingRate
 	IndexCandlesticksCh              chan *public.IndexCandlesticks
 	IndexTickersCh                   chan *public.IndexTickers
+	LiquidationOrdersCh              chan *public.LiquidationOrders
 }
 
 // NewPublic returns a pointer to a fresh Public
@@ -560,6 +561,19 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			go func() {
 				if c.IndexTickersCh != nil {
 					c.IndexTickersCh <- &e
+				}
+				c.StructuredEventChan <- e
+			}()
+			return true
+		case "liquidation-orders":
+			e := public.LiquidationOrders{}
+			err := json.Unmarshal(data, &e)
+			if err != nil {
+				return false
+			}
+			go func() {
+				if c.LiquidationOrdersCh != nil {
+					c.LiquidationOrdersCh <- &e
 				}
 				c.StructuredEventChan <- e
 			}()
