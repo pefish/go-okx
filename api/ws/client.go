@@ -131,30 +131,29 @@ func (c *ClientWs) Login() error {
 // Users can choose to subscribe to one or more channels, and the total length of multiple channels cannot exceed 4096 bytes.
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-subscribe
-func (c *ClientWs) Subscribe(p bool, args []map[string]string) error {
-	return c.Send(p, okex.SubscribeOperation, args)
+func (c *ClientWs) Subscribe(needLogin bool, args []map[string]string) error {
+	return c.Send(needLogin, okex.SubscribeOperation, args)
 }
 
 // Unsubscribe into channel(s)
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-unsubscribe
-func (c *ClientWs) Unsubscribe(p bool, args []map[string]string) error {
-	return c.Send(p, okex.UnsubscribeOperation, args)
+func (c *ClientWs) Unsubscribe(args []map[string]string) error {
+	return c.Send(false, okex.UnsubscribeOperation, args)
 }
 
 // Send message through either connections
-func (c *ClientWs) Send(p bool, op okex.Operation, args []map[string]string, extras ...map[string]string) error {
+func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]string, extras ...map[string]string) error {
 	if op != okex.LoginOperation {
-		err := c.Connect(p)
-		if err == nil {
-			if p {
-				err = c.WaitForAuthorization()
-				if err != nil {
-					return err
-				}
-			}
-		} else {
+		err := c.Connect(needLogin)
+		if err != nil {
 			return err
+		}
+		if needLogin {
+			err = c.WaitForAuthorization()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -171,7 +170,7 @@ func (c *ClientWs) Send(p bool, op okex.Operation, args []map[string]string, ext
 	if err != nil {
 		return err
 	}
-	c.sendChan[p] <- j
+	c.sendChan[needLogin] <- j
 	return nil
 }
 
