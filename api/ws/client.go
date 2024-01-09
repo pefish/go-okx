@@ -138,8 +138,8 @@ func (c *ClientWs) Subscribe(needLogin bool, args []map[string]string) error {
 // Unsubscribe into channel(s)
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-unsubscribe
-func (c *ClientWs) Unsubscribe(args []map[string]string) error {
-	return c.Send(false, okex.UnsubscribeOperation, args)
+func (c *ClientWs) Unsubscribe(needLogin bool, args []map[string]string) error {
+	return c.Send(needLogin, okex.UnsubscribeOperation, args)
 }
 
 // Send message through either connections

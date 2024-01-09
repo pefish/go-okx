@@ -55,10 +55,10 @@ func do() error {
 		//	"channel": "open-interest",
 		//	"instId":  "ETH-USDT-SWAP",
 		//},
-		//map[string]string{
-		//	"channel": "mark-price",
-		//	"instId":  "BTC-USDT",
-		//},
+		map[string]string{
+			"channel": "mark-price",
+			"instId":  "BTC-USDT",
+		},
 		map[string]string{
 			"channel":  "liquidation-orders",
 			"instType": "SWAP",
@@ -117,6 +117,15 @@ time: %s
 					p.TS.String(),
 				)
 			}
+			//err := client.Ws.Public.Unsubscribe(false, []map[string]string{
+			//	map[string]string{
+			//		"channel": "mark-price",
+			//		"instId":  "BTC-USDT",
+			//	},
+			//})
+			//if err != nil {
+			//	return err
+			//}
 		case f := <-client.Ws.Public.LiquidationOrdersCh:
 			for _, p := range f.LiquidationOrders {
 				fmt.Printf("symbol: %s\n", p.InstID)
