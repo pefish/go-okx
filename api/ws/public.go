@@ -441,12 +441,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.InstrumentsCh != nil {
-					c.InstrumentsCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.InstrumentsCh != nil {
+				c.InstrumentsCh <- &e
+			}
 			return true
 		case "tickers":
 			e := public.Tickers{}
@@ -454,12 +451,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.TickersCh != nil {
-					c.TickersCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.TickersCh != nil {
+				c.TickersCh <- &e
+			}
 			return true
 		case "open-interest":
 			e := public.OpenInterest{}
@@ -467,12 +461,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.OpenInterestCh != nil {
-					c.OpenInterestCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.OpenInterestCh != nil {
+				c.OpenInterestCh <- &e
+			}
 			return true
 		case "trades":
 			e := public.Trades{}
@@ -480,12 +471,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.TradesCh != nil {
-					c.TradesCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.TradesCh != nil {
+				c.TradesCh <- &e
+			}
 			return true
 		case "estimated-price":
 			e := public.EstimatedDeliveryExercisePrice{}
@@ -493,12 +481,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.EstimatedDeliveryExercisePriceCh != nil {
-					c.EstimatedDeliveryExercisePriceCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.EstimatedDeliveryExercisePriceCh != nil {
+				c.EstimatedDeliveryExercisePriceCh <- &e
+			}
 			return true
 		case "mark-price":
 			e := public.MarkPrice{}
@@ -506,12 +491,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.MarkPriceCh != nil {
-					c.MarkPriceCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.MarkPriceCh != nil {
+				c.MarkPriceCh <- &e
+			}
 			return true
 		case "price-limit":
 			e := public.PriceLimit{}
@@ -519,12 +501,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.PriceLimitCh != nil {
-					c.PriceLimitCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.PriceLimitCh != nil {
+				c.PriceLimitCh <- &e
+			}
 			return true
 		case "opt-summary":
 			e := public.OptionSummary{}
@@ -532,12 +511,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.OptionSummaryCh != nil {
-					c.OptionSummaryCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.OptionSummaryCh != nil {
+				c.OptionSummaryCh <- &e
+			}
 			return true
 		case "funding-rate":
 			e := public.FundingRate{}
@@ -545,12 +521,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.FundingRateCh != nil {
-					c.FundingRateCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.FundingRateCh != nil {
+				c.FundingRateCh <- &e
+			}
 			return true
 		case "index-tickers":
 			e := public.IndexTickers{}
@@ -558,12 +531,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.IndexTickersCh != nil {
-					c.IndexTickersCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.IndexTickersCh != nil {
+				c.IndexTickersCh <- &e
+			}
 			return true
 		case "liquidation-orders":
 			e := public.LiquidationOrders{}
@@ -571,12 +541,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.LiquidationOrdersCh != nil {
-					c.LiquidationOrdersCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.LiquidationOrdersCh != nil {
+				c.LiquidationOrdersCh <- &e
+			}
 			return true
 		default:
 			// special cases
@@ -589,12 +556,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				if err != nil {
 					return false
 				}
-				go func() {
-					if c.MarkPriceCandlesticksCh != nil {
-						c.MarkPriceCandlesticksCh <- &e
-					}
-					c.StructuredEventChan <- e
-				}()
+				if c.MarkPriceCandlesticksCh != nil {
+					c.MarkPriceCandlesticksCh <- &e
+				}
 				return true
 			}
 			// index chandlestick channels
@@ -604,12 +568,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				if err != nil {
 					return false
 				}
-				go func() {
-					if c.IndexCandlesticksCh != nil {
-						c.IndexCandlesticksCh <- &e
-					}
-					c.StructuredEventChan <- e
-				}()
+				if c.IndexCandlesticksCh != nil {
+					c.IndexCandlesticksCh <- &e
+				}
 				return true
 			}
 			// candlestick channels
@@ -619,12 +580,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				if err != nil {
 					return false
 				}
-				go func() {
-					if c.CandlesticksCh != nil {
-						c.CandlesticksCh <- &e
-					}
-					c.StructuredEventChan <- e
-				}()
+				if c.CandlesticksCh != nil {
+					c.CandlesticksCh <- &e
+				}
 				return true
 			}
 			// order book channels
@@ -634,12 +592,9 @@ func (c *Public) Process(data []byte, e *events.Basic) bool {
 				if err != nil {
 					return false
 				}
-				go func() {
-					if c.OrderBookCh != nil {
-						c.OrderBookCh <- &e
-					}
-					c.StructuredEventChan <- e
-				}()
+				if c.OrderBookCh != nil {
+					c.OrderBookCh <- &e
+				}
 				return true
 			}
 		}

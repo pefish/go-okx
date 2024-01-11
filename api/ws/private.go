@@ -13,10 +13,10 @@ import (
 // https://www.okex.com/docs-v5/en/#websocket-api-private-channel
 type Private struct {
 	*ClientWs
-	aCh   chan *private.Account
-	pCh   chan *private.Position
-	bnpCh chan *private.BalanceAndPosition
-	oCh   chan *private.Order
+	AccountCh            chan *private.Account
+	PositionCh           chan *private.Position
+	BalanceAndPositionCh chan *private.BalanceAndPosition
+	OrderCh              chan *private.Order
 }
 
 // NewPrivate returns a pointer to a fresh Private
@@ -34,7 +34,7 @@ func (c *Private) Account(req []requests.Account, ch ...chan *private.Account) e
 		m[i]["channel"] = "account"
 	}
 	if len(ch) > 0 {
-		c.aCh = ch[0]
+		c.AccountCh = ch[0]
 	}
 	return c.Subscribe(true, m)
 }
@@ -48,7 +48,7 @@ func (c *Private) UAccount(req []requests.Account, rCh ...bool) error {
 		m[i]["channel"] = "account"
 	}
 	if len(rCh) > 0 && rCh[0] {
-		c.aCh = nil
+		c.AccountCh = nil
 	}
 	return c.Unsubscribe(true, m)
 }
@@ -63,7 +63,7 @@ func (c *Private) Position(req []requests.Position, ch ...chan *private.Position
 		m[i]["channel"] = "positions"
 	}
 	if len(ch) > 0 {
-		c.pCh = ch[0]
+		c.PositionCh = ch[0]
 	}
 	return c.Subscribe(true, m)
 }
@@ -77,7 +77,7 @@ func (c *Private) UPosition(req []requests.Position, rCh ...bool) error {
 		m[i]["channel"] = "positions"
 	}
 	if len(rCh) > 0 && rCh[0] {
-		c.pCh = nil
+		c.PositionCh = nil
 	}
 	return c.Unsubscribe(true, m)
 }
@@ -93,7 +93,7 @@ func (c *Private) BalanceAndPosition(ch ...chan *private.BalanceAndPosition) err
 		},
 	}
 	if len(ch) > 0 {
-		c.bnpCh = ch[0]
+		c.BalanceAndPositionCh = ch[0]
 	}
 	return c.Subscribe(true, m)
 }
@@ -108,7 +108,7 @@ func (c *Private) UBalanceAndPosition(rCh ...bool) error {
 		},
 	}
 	if len(rCh) > 0 && rCh[0] {
-		c.bnpCh = nil
+		c.BalanceAndPositionCh = nil
 	}
 	return c.Unsubscribe(true, m)
 }
@@ -123,7 +123,7 @@ func (c *Private) Order(req []requests.Order, ch ...chan *private.Order) error {
 		m[i]["channel"] = "orders"
 	}
 	if len(ch) > 0 {
-		c.oCh = ch[0]
+		c.OrderCh = ch[0]
 	}
 	return c.Subscribe(true, m)
 }
@@ -137,7 +137,7 @@ func (c *Private) UOrder(req []requests.Order, rCh ...bool) error {
 		m[i]["channel"] = "orders"
 	}
 	if len(rCh) > 0 && rCh[0] {
-		c.oCh = nil
+		c.OrderCh = nil
 	}
 	return c.Unsubscribe(true, m)
 }
@@ -155,12 +155,9 @@ func (c *Private) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.aCh != nil {
-					c.aCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.AccountCh != nil {
+				c.AccountCh <- &e
+			}
 			return true
 		case "positions":
 			e := private.Position{}
@@ -168,12 +165,9 @@ func (c *Private) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.pCh != nil {
-					c.pCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.PositionCh != nil {
+				c.PositionCh <- &e
+			}
 			return true
 		case "balance_and_position":
 			e := private.BalanceAndPosition{}
@@ -181,12 +175,9 @@ func (c *Private) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.bnpCh != nil {
-					c.bnpCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.BalanceAndPositionCh != nil {
+				c.BalanceAndPositionCh <- &e
+			}
 			return true
 		case "orders":
 			e := private.Order{}
@@ -194,12 +185,9 @@ func (c *Private) Process(data []byte, e *events.Basic) bool {
 			if err != nil {
 				return false
 			}
-			go func() {
-				if c.oCh != nil {
-					c.oCh <- &e
-				}
-				c.StructuredEventChan <- e
-			}()
+			if c.OrderCh != nil {
+				c.OrderCh <- &e
+			}
 			return true
 		}
 	}
