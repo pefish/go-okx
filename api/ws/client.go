@@ -7,12 +7,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/events"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -21,18 +19,15 @@ import (
 // https://www.okex.com/docs-v5/en/#websocket-api
 type ClientWs struct {
 	Cancel        context.CancelFunc
-	DoneChan      chan interface{}
 	ErrChan       chan *events.Error
 	SubscribeChan chan *events.Subscribe
 	UnsubscribeCh chan *events.Unsubscribe
 	LoginChan     chan *events.Login
 	SuccessChan   chan *events.Success
 	url           map[bool]okex.BaseURL // need or not login -> url
-	conn          sync.Map              // *websocket.Conn
 	apiKey        string
 	secretKey     []byte
 	passphrase    string
-	lastTransmit  sync.Map // *time.Time
 	AuthRequested *time.Time
 	Authorized    bool
 	Private       *Private
@@ -58,7 +53,6 @@ func NewClient(ctx context.Context, apiKey, secretKey, passphrase string, url ma
 		ctx:        ctx,
 		Cancel:     cancel,
 		url:        url,
-		DoneChan:   make(chan interface{}),
 	}
 	c.Private = NewPrivate(c)
 	c.Public = NewPublic(c)
@@ -66,29 +60,34 @@ func NewClient(ctx context.Context, apiKey, secretKey, passphrase string, url ma
 	return c
 }
 
-// Connect into the server
+// ReConnect into the server
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-connect
-func (c *ClientWs) Connect(senderChan chan []byte, needLogin bool) error {
-	uuidStr := uuid.New().String()
+func (c *ClientWs) ReConnect(senderChan chan []byte, needLogin bool) error {
+	sendErrChan := make(chan error)
 
-	err := c.dial(senderChan, uuidStr, needLogin)
-	if err == nil {
-		return nil
+	err := c.dial(senderChan, needLogin, sendErrChan)
+	if err != nil {
+		return err
 	}
-	ticker := time.NewTicker(redialTick)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			err = c.dial(senderChan, uuidStr, needLogin)
-			if err == nil {
-				return nil
+
+	go func() {
+		for {
+			select {
+			case err := <-sendErrChan:
+				fmt.Printf("Send error <%+v>, reconnect...\n", err)
+				err = c.dial(senderChan, needLogin, sendErrChan)
+				if err != nil {
+					fmt.Printf("Reconnect failed. %+v\n", err)
+					return
+				}
+			case <-c.ctx.Done():
+				return
 			}
-		case <-c.ctx.Done():
-			return c.handleCancel("connect")
 		}
-	}
+	}()
+
+	return nil
 }
 
 // Login
@@ -136,7 +135,7 @@ func (c *ClientWs) Unsubscribe(needLogin bool, args []map[string]string) error {
 func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]string) error {
 	senderChan := make(chan []byte, 3)
 
-	err := c.Connect(senderChan, needLogin)
+	err := c.ReConnect(senderChan, needLogin)
 	if err != nil {
 		return err
 	}
@@ -176,7 +175,11 @@ func (c *ClientWs) WaitForAuthorization() error {
 	return nil
 }
 
-func (c *ClientWs) dial(senderChan chan []byte, uuidStr string, needLogin bool) error {
+func (c *ClientWs) dial(
+	senderChan chan []byte,
+	needLogin bool,
+	sendErrChan chan<- error,
+) error {
 	conn, res, err := websocket.DefaultDialer.Dial(string(c.url[needLogin]), nil)
 	if err != nil {
 		var statusCode int
@@ -186,25 +189,25 @@ func (c *ClientWs) dial(senderChan chan []byte, uuidStr string, needLogin bool) 
 		return fmt.Errorf("error %d: %w", statusCode, err)
 	}
 	defer res.Body.Close()
-	c.conn.Store(uuidStr, conn)
 	go func() {
-		err := c.receiver(uuidStr)
+		err := c.receiver(conn)
 		if err != nil {
 			fmt.Printf("receiver error: %v\n", err)
 		}
 	}()
 	go func() {
-		err := c.sender(senderChan, uuidStr)
+		err := c.sender(conn, senderChan, sendErrChan)
 		if err != nil {
 			fmt.Printf("sender error: %v\n", err)
 		}
 	}()
 	return nil
 }
-func (c *ClientWs) sender(senderChan chan []byte, uuidStr string) error {
-	v, _ := c.conn.Load(uuidStr)
-	conn := v.(*websocket.Conn)
-
+func (c *ClientWs) sender(
+	conn *websocket.Conn,
+	senderChan chan []byte,
+	sendErrChan chan<- error,
+) error {
 	ticker := time.NewTicker(time.Millisecond * 300)
 	defer ticker.Stop()
 	for {
@@ -219,36 +222,24 @@ func (c *ClientWs) sender(senderChan chan []byte, uuidStr string) error {
 				return err
 			}
 			if _, err = w.Write(data); err != nil {
+				sendErrChan <- err
 				return err
 			}
-			now := time.Now()
-			c.lastTransmit.Store(uuidStr, &now)
 			if err := w.Close(); err != nil {
 				return err
 			}
 		case <-ticker.C:
-			var lastTransmit *time.Time
-			v, ok := c.lastTransmit.Load(uuidStr)
-			if ok {
-				lastTransmit = v.(*time.Time)
-			}
-			if conn != nil && (lastTransmit == nil || (lastTransmit != nil && time.Since(*lastTransmit) > PingPeriod)) {
-				go func() {
-					senderChan <- []byte("ping")
-				}()
-			}
+			senderChan <- []byte("ping")
 		case <-c.ctx.Done():
-			return c.handleCancel("sender")
+			return fmt.Errorf("operation cancelled: sender")
 		}
 	}
 }
-func (c *ClientWs) receiver(uuidStr string) error {
-	v, _ := c.conn.Load(uuidStr)
-	conn := v.(*websocket.Conn)
+func (c *ClientWs) receiver(conn *websocket.Conn) error {
 	for {
 		select {
 		case <-c.ctx.Done():
-			return c.handleCancel("receiver")
+			return fmt.Errorf("operation cancelled: receiver")
 		default:
 			err := conn.SetReadDeadline(time.Now().Add(pongWait))
 			if err != nil {
@@ -261,8 +252,6 @@ func (c *ClientWs) receiver(uuidStr string) error {
 				}
 				return err
 			}
-			now := time.Now()
-			c.lastTransmit.Store(uuidStr, &now)
 			if mt == websocket.TextMessage && string(data) != "pong" {
 				e := &events.Basic{}
 				if err := json.Unmarshal(data, &e); err != nil {
@@ -283,12 +272,6 @@ func (c *ClientWs) sign(method, path string) (string, string) {
 	h := hmac.New(sha256.New, c.secretKey)
 	h.Write(p)
 	return ts, base64.StdEncoding.EncodeToString(h.Sum(nil))
-}
-func (c *ClientWs) handleCancel(msg string) error {
-	go func() {
-		c.DoneChan <- msg
-	}()
-	return fmt.Errorf("operation cancelled: %s", msg)
 }
 
 // TODO: break each case into a separate function

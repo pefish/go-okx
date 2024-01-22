@@ -112,7 +112,7 @@ type (
 		Side    okex.OrderSide    `json:"side"`
 		PosSide okex.PositionSide `json:"posSide"`
 		BkPx    okex.JSONFloat64  `json:"bkPx"`
-		Sz      okex.JSONFloat64  `json:"sz"`
+		Sz      okex.JSONFloat64  `json:"sz"` // 多少张，而不是多少个币
 		BkLoss  okex.JSONFloat64  `json:"bkLoss"`
 		TS      okex.JSONTime     `json:"ts"`
 	}
