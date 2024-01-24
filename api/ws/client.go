@@ -196,8 +196,9 @@ func (c *ClientWs) dial(
 		}
 	}()
 	go func() {
-		err := c.sender(conn, senderChan, sendErrChan)
+		err := c.sender(conn, senderChan)
 		if err != nil {
+			sendErrChan <- err
 			fmt.Printf("sender error: %v\n", err)
 		}
 	}()
@@ -206,7 +207,6 @@ func (c *ClientWs) dial(
 func (c *ClientWs) sender(
 	conn *websocket.Conn,
 	senderChan chan []byte,
-	sendErrChan chan<- error,
 ) error {
 	ticker := time.NewTicker(time.Millisecond * 300)
 	defer ticker.Stop()
@@ -222,7 +222,6 @@ func (c *ClientWs) sender(
 				return err
 			}
 			if _, err = w.Write(data); err != nil {
-				sendErrChan <- err
 				return err
 			}
 			if err := w.Close(); err != nil {
