@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	go_logger "github.com/pefish/go-logger"
 	"github.com/pefish/go-okx"
 	requests "github.com/pefish/go-okx/requests/rest/public"
 	responses "github.com/pefish/go-okx/responses/public_data"
@@ -30,6 +31,7 @@ type ClientRest struct {
 	destination okex.Destination
 	baseURL     okex.BaseURL
 	client      *http.Client
+	logger      go_logger.InterfaceLogger
 }
 
 // NewClient returns a pointer to a fresh ClientRest
@@ -49,6 +51,11 @@ func NewClient(apiKey, secretKey, passphrase string, baseURL okex.BaseURL, desti
 	c.Market = NewMarket(c)
 	c.PublicData = NewPublicData(c)
 	c.TradeData = NewTradeData(c)
+	return c
+}
+
+func (c *ClientRest) SetLogger(logger go_logger.InterfaceLogger) *ClientRest {
+	c.logger = logger
 	return c
 }
 
