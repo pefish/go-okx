@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pefish/go-okx"
+	"github.com/pkg/errors"
 	"strconv"
 	"time"
 )
@@ -112,7 +113,7 @@ func (o *OrderBookEntity) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in OrderBookEntity: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in OrderBookEntity: %d != %d", g, e))
 	}
 	o.DepthPrice, err = strconv.ParseFloat(dp, 64)
 	if err != nil {
@@ -146,7 +147,7 @@ func (c *Candle) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -211,7 +212,7 @@ func (c *IndexCandle) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)

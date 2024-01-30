@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	go_logger "github.com/pefish/go-logger"
 	"github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/events"
+	"github.com/pkg/errors"
 	"net/http"
 	"time"
 )
@@ -34,6 +36,7 @@ type ClientWs struct {
 	Public        *Public
 	Trade         *Trade
 	ctx           context.Context
+	logger        go_logger.InterfaceLogger
 }
 
 const (
@@ -44,7 +47,13 @@ const (
 )
 
 // NewClient returns a pointer to a fresh ClientWs
-func NewClient(ctx context.Context, apiKey, secretKey, passphrase string, url map[bool]okex.BaseURL) *ClientWs {
+func NewClient(
+	ctx context.Context,
+	apiKey,
+	secretKey,
+	passphrase string,
+	url map[bool]okex.BaseURL,
+) *ClientWs {
 	ctx, cancel := context.WithCancel(ctx)
 	c := &ClientWs{
 		apiKey:     apiKey,
@@ -60,27 +69,37 @@ func NewClient(ctx context.Context, apiKey, secretKey, passphrase string, url ma
 	return c
 }
 
+func (c *ClientWs) SetLogger(logger go_logger.InterfaceLogger) *ClientWs {
+	c.logger = logger
+	return c
+}
+
 // ReConnect into the server
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-connect
-func (c *ClientWs) ReConnect(senderChan chan []byte, needLogin bool) error {
+func (c *ClientWs) ReConnect(needLogin bool, sendData []byte) error {
+	senderChan := make(chan []byte, 3)
 	sendErrChan := make(chan error)
 
 	err := c.dial(senderChan, needLogin, sendErrChan)
 	if err != nil {
 		return err
 	}
+	c.logger.InfoF("Connect success.")
+	senderChan <- sendData
 
 	go func() {
 		for {
 			select {
 			case err := <-sendErrChan:
-				fmt.Printf("Send error <%+v>, reconnect...\n", err)
+				c.logger.ErrorF("Send error <%+v>, reconnect...\n", err)
 				err = c.dial(senderChan, needLogin, sendErrChan)
 				if err != nil {
-					fmt.Printf("Reconnect failed. %+v\n", err)
+					c.logger.ErrorF("Reconnect failed. %+v\n", err)
 					return
 				}
+				c.logger.InfoF("Connect success.")
+				senderChan <- sendData
 			case <-c.ctx.Done():
 				return
 			}
@@ -133,9 +152,14 @@ func (c *ClientWs) Unsubscribe(needLogin bool, args []map[string]string) error {
 
 // Send message through either connections
 func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]string) error {
-	senderChan := make(chan []byte, 3)
-
-	err := c.ReConnect(senderChan, needLogin)
+	j, err := json.Marshal(map[string]interface{}{
+		"op":   op,
+		"args": args,
+	})
+	if err != nil {
+		return err
+	}
+	err = c.ReConnect(needLogin, j)
 	if err != nil {
 		return err
 	}
@@ -146,14 +170,6 @@ func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]str
 		}
 	}
 
-	j, err := json.Marshal(map[string]interface{}{
-		"op":   op,
-		"args": args,
-	})
-	if err != nil {
-		return err
-	}
-	senderChan <- j
 	return nil
 }
 
@@ -186,20 +202,20 @@ func (c *ClientWs) dial(
 		if res != nil {
 			statusCode = res.StatusCode
 		}
-		return fmt.Errorf("error %d: %w", statusCode, err)
+		return errors.New(fmt.Sprintf("error %d: %w", statusCode, err))
 	}
 	defer res.Body.Close()
 	go func() {
 		err := c.receiver(conn)
 		if err != nil {
-			fmt.Printf("receiver error: %v\n", err)
+			c.logger.ErrorF("Receiver error: %v\n", err)
 		}
 	}()
 	go func() {
 		err := c.sender(conn, senderChan)
 		if err != nil {
 			sendErrChan <- err
-			fmt.Printf("sender error: %v\n", err)
+			c.logger.ErrorF("Sender error: %v\n", err)
 		}
 	}()
 	return nil
@@ -230,7 +246,7 @@ func (c *ClientWs) sender(
 		case <-ticker.C:
 			senderChan <- []byte("ping")
 		case <-c.ctx.Done():
-			return fmt.Errorf("operation cancelled: sender")
+			return errors.New("operation cancelled: sender")
 		}
 	}
 }
@@ -238,7 +254,7 @@ func (c *ClientWs) receiver(conn *websocket.Conn) error {
 	for {
 		select {
 		case <-c.ctx.Done():
-			return fmt.Errorf("operation cancelled: receiver")
+			return errors.New("operation cancelled: receiver")
 		default:
 			err := conn.SetReadDeadline(time.Now().Add(pongWait))
 			if err != nil {

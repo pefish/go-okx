@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pefish/go-okx"
+	"github.com/pkg/errors"
 	"strconv"
 	"time"
 )
@@ -72,7 +73,7 @@ func (c *TakerVolume) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -106,7 +107,7 @@ func (c *Ratio) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -135,7 +136,7 @@ func (c *InterestAndVolumeRatio) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -172,7 +173,7 @@ func (c *PutCallRatio) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -209,7 +210,7 @@ func (c *InterestAndVolumeExpiry) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -264,7 +265,7 @@ func (c *InterestAndVolumeStrike) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
@@ -319,7 +320,7 @@ func (c *TakerFlow) UnmarshalJSON(buf []byte) error {
 	}
 
 	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("wrong number of fields in Candle: %d != %d", g, e)
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
 	}
 
 	timestamp, err := strconv.ParseInt(ts, 10, 64)
