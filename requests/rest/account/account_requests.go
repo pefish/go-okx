@@ -1,6 +1,6 @@
 package account
 
-import "github.com/pefish/go-okx"
+import okex "github.com/pefish/go-okx"
 
 type (
 	GetBalance struct {
@@ -26,7 +26,7 @@ type (
 		SubType  okex.BillSubType    `json:"subType,omitempty,string"`
 	}
 	SetPositionMode struct {
-		PositionMode okex.PositionType `json:"positionMode"`
+		PositionMode okex.PositionType `json:"posMode"`
 	}
 	SetLeverage struct {
 		Lever   int64             `json:"lever,string"`
