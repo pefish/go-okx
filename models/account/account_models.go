@@ -1,7 +1,7 @@
 package account
 
 import (
-	"github.com/pefish/go-okx"
+	okex "github.com/pefish/go-okx"
 )
 
 type (
@@ -114,12 +114,14 @@ type (
 		InstID    string              `json:"instId"`
 		Notes     string              `json:"notes"`
 		BillID    string              `json:"billId"`
+		TradeID   string              `json:"tradeId"`
 		OrdID     string              `json:"ordId"`
 		BalChg    okex.JSONFloat64    `json:"balChg"`
 		PosBalChg okex.JSONFloat64    `json:"posBalChg"`
 		Bal       okex.JSONFloat64    `json:"bal"`
 		PosBal    okex.JSONFloat64    `json:"posBal"`
 		Sz        okex.JSONFloat64    `json:"sz"`
+		Px        okex.JSONFloat64    `json:"px"`
 		Pnl       okex.JSONFloat64    `json:"pnl"`
 		Fee       okex.JSONFloat64    `json:"fee"`
 		From      okex.AccountType    `json:"from,string"`
