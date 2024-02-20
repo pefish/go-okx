@@ -24,6 +24,8 @@ type (
 		CtType   okex.ContractType   `json:"ctType,omitempty"`
 		Type     okex.BillType       `json:"type,omitempty,string"`
 		SubType  okex.BillSubType    `json:"subType,omitempty,string"`
+		Begin    int64               `json:"begin,omitempty,string"`
+		End      int64               `json:"end,omitempty,string"`
 	}
 	SetPositionMode struct {
 		PositionMode okex.PositionType `json:"posMode"`
