@@ -7,13 +7,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	go_logger "github.com/pefish/go-logger"
-	"github.com/pefish/go-okx"
-	requests "github.com/pefish/go-okx/requests/rest/public"
-	responses "github.com/pefish/go-okx/responses/public_data"
 	"net/http"
+	"net/http/httputil"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	go_logger "github.com/pefish/go-logger"
+	okex "github.com/pefish/go-okx"
+	requests "github.com/pefish/go-okx/requests/rest/public"
+	responses "github.com/pefish/go-okx/responses/public_data"
 )
 
 // ClientRest is the rest api client
@@ -112,7 +115,33 @@ func (c *ClientRest) Do(method, path string, private bool, params ...map[string]
 	if c.destination == okex.DemoServer {
 		r.Header.Add("x-simulated-trading", "1")
 	}
-	return c.client.Do(r)
+	uuidStr := ""
+	if c.logger.IsDebug() {
+		u, err := uuid.NewUUID()
+		if err != nil {
+			return nil, err
+		}
+		uuidStr = u.String()
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			c.logger.DebugF("[go-okx] Error: %#v", err)
+		} else {
+			c.logger.DebugF("[go-okx] [%s] HTTP Request: %s", uuidStr, string(dump))
+		}
+	}
+	res, err := c.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	if c.logger.IsDebug() {
+		dump, err := httputil.DumpResponse(res, true)
+		if nil != err {
+			c.logger.DebugF("[go-okx] Error: %#v", err)
+		} else {
+			c.logger.DebugF("[go-okx] [%s] HTTP Response: %s", uuidStr, string(dump))
+		}
+	}
+	return res, nil
 }
 
 // Status
