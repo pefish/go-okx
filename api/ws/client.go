@@ -7,13 +7,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
-	go_logger "github.com/pefish/go-logger"
-	"github.com/pefish/go-okx"
-	"github.com/pefish/go-okx/events"
-	"github.com/pkg/errors"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/websocket"
+	go_logger "github.com/pefish/go-logger"
+	okex "github.com/pefish/go-okx"
+	"github.com/pefish/go-okx/events"
+	"github.com/pkg/errors"
 )
 
 // ClientWs is the websocket api client
@@ -74,41 +75,6 @@ func (c *ClientWs) SetLogger(logger go_logger.InterfaceLogger) *ClientWs {
 	return c
 }
 
-// ReConnect into the server
-//
-// https://www.okex.com/docs-v5/en/#websocket-api-connect
-func (c *ClientWs) ReConnect(needLogin bool, sendData []byte) error {
-	senderChan := make(chan []byte, 3)
-	sendErrChan := make(chan error)
-
-	err := c.dial(senderChan, needLogin, sendErrChan)
-	if err != nil {
-		return err
-	}
-	c.logger.InfoF("Connect success.")
-	senderChan <- sendData
-
-	go func() {
-		for {
-			select {
-			case err := <-sendErrChan:
-				c.logger.ErrorF("Send error <%+v>, reconnect...\n", err)
-				err = c.dial(senderChan, needLogin, sendErrChan)
-				if err != nil {
-					c.logger.ErrorF("Reconnect failed. %+v\n", err)
-					return
-				}
-				c.logger.InfoF("Connect success.")
-				senderChan <- sendData
-			case <-c.ctx.Done():
-				return
-			}
-		}
-	}()
-
-	return nil
-}
-
 // Login
 //
 // https://www.okex.com/docs-v5/en/#websocket-api-login
@@ -150,25 +116,63 @@ func (c *ClientWs) Unsubscribe(needLogin bool, args []map[string]string) error {
 	return c.Send(needLogin, okex.UnsubscribeOperation, args)
 }
 
-// Send message through either connections
-func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]string) error {
-	j, err := json.Marshal(map[string]interface{}{
-		"op":   op,
-		"args": args,
-	})
+func (c *ClientWs) connect(
+	needLogin bool,
+	senderChan chan []byte,
+	sendErrChan chan error,
+) error {
+	err := c.dial(senderChan, needLogin, sendErrChan)
 	if err != nil {
 		return err
 	}
-	err = c.ReConnect(needLogin, j)
-	if err != nil {
-		return err
-	}
+
 	if needLogin {
 		err = c.WaitForAuthorization()
 		if err != nil {
 			return err
 		}
 	}
+
+	return nil
+}
+
+// Send message through either connections
+func (c *ClientWs) Send(needLogin bool, op okex.Operation, args []map[string]string) error {
+	sendData, err := json.Marshal(map[string]interface{}{
+		"op":   op,
+		"args": args,
+	})
+	if err != nil {
+		return err
+	}
+	senderChan := make(chan []byte, 3)
+	sendErrChan := make(chan error, 2)
+
+	err = c.connect(needLogin, senderChan, sendErrChan)
+	if err != nil {
+		return err
+	}
+	senderChan <- sendData
+
+	// 监控重连
+	go func() {
+		for {
+			select {
+			case err := <-sendErrChan:
+				c.logger.ErrorF("<%s> Send error <%+v>, reconnect...\n", string(sendData), err)
+				err = c.connect(needLogin, senderChan, sendErrChan)
+				if err != nil {
+					time.Sleep(3 * time.Second)
+					sendErrChan <- errors.Errorf("<%s> Connect failed. %+v\n", string(sendData), err)
+					continue
+				}
+				c.logger.InfoF("<%s> Connect success.", string(sendData))
+				senderChan <- sendData
+			case <-c.ctx.Done():
+				return
+			}
+		}
+	}()
 
 	return nil
 }
