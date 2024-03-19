@@ -3,10 +3,11 @@ package tradedata
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pefish/go-okx"
-	"github.com/pkg/errors"
 	"strconv"
 	"time"
+
+	okex "github.com/pefish/go-okx"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -23,6 +24,11 @@ type (
 	Ratio struct {
 		Ratio float64
 		TS    okex.JSONTime
+	}
+	HoldVolRatio struct {
+		LongRatio  float64
+		ShortRatio float64
+		TS         okex.JSONTime
 	}
 	InterestAndVolumeRatio struct {
 		Oi  float64
@@ -117,6 +123,40 @@ func (c *Ratio) UnmarshalJSON(buf []byte) error {
 	*(*time.Time)(&c.TS) = time.UnixMilli(timestamp)
 
 	c.Ratio, err = strconv.ParseFloat(ratio, 64)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *HoldVolRatio) UnmarshalJSON(buf []byte) error {
+	var (
+		longRatio, shortRatio, ts string
+		err                       error
+	)
+	tmp := []interface{}{&ts, &longRatio, &shortRatio}
+	wantLen := len(tmp)
+	if err := json.Unmarshal(buf, &tmp); err != nil {
+		return err
+	}
+
+	if g, e := len(tmp), wantLen; g != e {
+		return errors.New(fmt.Sprintf("wrong number of fields in Candle: %d != %d", g, e))
+	}
+
+	timestamp, err := strconv.ParseInt(ts, 10, 64)
+	if err != nil {
+		return err
+	}
+	*(*time.Time)(&c.TS) = time.UnixMilli(timestamp)
+
+	c.LongRatio, err = strconv.ParseFloat(longRatio, 64)
+	if err != nil {
+		return err
+	}
+
+	c.ShortRatio, err = strconv.ParseFloat(shortRatio, 64)
 	if err != nil {
 		return err
 	}

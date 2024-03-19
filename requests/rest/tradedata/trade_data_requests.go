@@ -1,6 +1,6 @@
 package tradedata
 
-import "github.com/pefish/go-okx"
+import okex "github.com/pefish/go-okx"
 
 type (
 	GetTakerVolume struct {
@@ -12,6 +12,13 @@ type (
 	}
 	GetRatio struct {
 		Ccy    string       `json:"ccy"`
+		Begin  int64        `json:"before,omitempty,string"`
+		End    int64        `json:"limit,omitempty,string"`
+		Period okex.BarSize `json:"period,string,omitempty"`
+	}
+	GetHoldVolRatio struct {
+		Ccy    string       `json:"ccy"`
+		Num    int64        `json:"num,omitempty,string"`
 		Begin  int64        `json:"before,omitempty,string"`
 		End    int64        `json:"limit,omitempty,string"`
 		Period okex.BarSize `json:"period,string,omitempty"`

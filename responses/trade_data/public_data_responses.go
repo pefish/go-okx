@@ -18,6 +18,10 @@ type (
 		responses.Basic
 		Ratios []*tradedata.Ratio `json:"data,omitempty"`
 	}
+	GetHoldVolRatio struct {
+		responses.Basic
+		Ratios []*tradedata.HoldVolRatio `json:"data,omitempty"`
+	}
 	GetOpenInterestAndVolume struct {
 		responses.Basic
 		InterestAndVolumeRatios []*tradedata.InterestAndVolumeRatio `json:"data,omitempty"`

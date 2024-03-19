@@ -2,10 +2,11 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/pefish/go-okx"
+	"net/http"
+
+	okex "github.com/pefish/go-okx"
 	requests "github.com/pefish/go-okx/requests/rest/tradedata"
 	responses "github.com/pefish/go-okx/responses/trade_data"
-	"net/http"
 )
 
 // TradeData
@@ -76,6 +77,19 @@ func (c *TradeData) GetMarginLendingRatio(req requests.GetRatio) (response respo
 // https://www.okex.com/docs-v5/en/#rest-api-trading-data-get-long-short-ratio
 func (c *TradeData) GetLongShortRatio(req requests.GetRatio) (response responses.GetRatio, err error) {
 	p := "/api/v5/rubik/stat/contracts/long-short-account-ratio"
+	m := okex.S2M(req)
+	res, err := c.client.Do(http.MethodGet, p, false, m)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	d := json.NewDecoder(res.Body)
+	err = d.Decode(&response)
+	return
+}
+
+func (c *TradeData) GetHoldVolLongShortRatio(req requests.GetHoldVolRatio) (response responses.GetHoldVolRatio, err error) {
+	p := "/priapi/v5/rubik/stat/contracts/top-trader-average-margin"
 	m := okex.S2M(req)
 	res, err := c.client.Do(http.MethodGet, p, false, m)
 	if err != nil {
