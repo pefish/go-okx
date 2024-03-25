@@ -43,6 +43,9 @@ func do() error {
 		if instrument.SettleCcy != "USDT" {
 			continue
 		}
+		if instrument.InstID != "SHIB-USDT-SWAP" {
+			continue
+		}
 		fmt.Printf(
 			`
 产品id: %s, 
@@ -51,7 +54,8 @@ func do() error {
 下单价格精度: %f, 
 下单数量精度: %f, 
 最小下单数量: %f, 
-市价单最大委托数量: %f
+市价单最大委托张数: %f
+每张面额：%f
 Uly: %s
 InstFamily: %s
 `,
@@ -62,6 +66,7 @@ InstFamily: %s
 			instrument.LotSz,
 			instrument.MinSz,
 			instrument.MaxMktSz,
+			instrument.CtVal,
 			instrument.Uly,
 			instrument.InstFamily,
 		)
