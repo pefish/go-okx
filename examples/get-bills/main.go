@@ -25,7 +25,7 @@ func do() error {
 		context.Background(),
 		"9c5760c6-ff0c-4e24-9bca-e60dc989bf46",
 		"",
-		"",
+		":",
 		okex.NormalServer,
 	)
 	if err != nil {
@@ -34,7 +34,7 @@ func do() error {
 	getBillsRes, err := client.Rest.Account.GetBills(okx_requests_account.GetBills{
 		InstType: okex.SwapInstrument,
 		Type:     okex.BillTradeType,
-		Begin:    1711810001063,
+		Begin:    1711710001063,
 	}, true)
 	if err != nil {
 		return err
@@ -45,12 +45,13 @@ func do() error {
 
 	for _, p := range getBillsRes.Bills {
 		fmt.Printf(
-			"symbol: %s, pnl: %f, fee: %f, PosBal: %f, PosBalChg: %f\n",
+			"symbol: %s, pnl: %f, fee: %f, PosBal: %f, PosBalChg: %f, SubType: %d\n",
 			p.InstID,
 			p.Pnl,
 			p.Fee,
 			p.PosBal,
 			p.PosBalChg,
+			p.SubType,
 		)
 	}
 
