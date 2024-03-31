@@ -7,7 +7,7 @@ import (
 
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
-	"github.com/pefish/go-okx/requests/rest/account"
+	okx_requests_account "github.com/pefish/go-okx/requests/rest/account"
 	"github.com/pkg/errors"
 )
 
@@ -31,18 +31,27 @@ func do() error {
 	if err != nil {
 		return err
 	}
-	getPositionsRes, err := client.Rest.Account.GetPositions(account.GetPositions{
-		// InstID:   []string{symbol},
+	getBillsRes, err := client.Rest.Account.GetBills(okx_requests_account.GetBills{
 		InstType: okex.SwapInstrument,
-	})
+		Type:     okex.BillTradeType,
+		Begin:    1711810001063,
+	}, true)
 	if err != nil {
 		return err
 	}
-	if getPositionsRes.Code != 0 {
-		return errors.Errorf("GetPositions failed. err: %s", getPositionsRes.Msg)
+	if getBillsRes.Code != 0 {
+		return errors.New(fmt.Sprintf("GetBills error. err: %s", getBillsRes.Msg))
 	}
-	for _, p := range getPositionsRes.Positions {
-		fmt.Printf("symbol: %s, pos: %f\n", p.InstID, p.Pos)
+
+	for _, p := range getBillsRes.Bills {
+		fmt.Printf(
+			"symbol: %s, pnl: %f, fee: %f, PosBal: %f, PosBalChg: %f\n",
+			p.InstID,
+			p.Pnl,
+			p.Fee,
+			p.PosBal,
+			p.PosBalChg,
+		)
 	}
 
 	return nil

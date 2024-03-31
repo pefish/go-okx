@@ -14,6 +14,11 @@ type (
 	GetAccountAndPositionRisk struct {
 		InstType okex.InstrumentType `json:"instType,omitempty"`
 	}
+	GetHistoryPositions struct {
+		Limit    int64 `json:"limit,omitempty,string"`
+		SortType int64 `json:"sortType,omitempty,string"`
+		EndTime  int64 `json:"t,omitempty,string"`
+	}
 	GetBills struct {
 		Ccy      string              `json:"ccy,omitempty"`
 		After    int64               `json:"after,omitempty,string"`

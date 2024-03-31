@@ -93,6 +93,23 @@ type (
 		PosData []*PositionAndAccountRiskBalanceData `json:"posData"`
 		TS      okex.JSONTime                        `json:"ts"`
 	}
+	HistoryPosition struct {
+		InstID           string              `json:"instId"`
+		InstType         okex.InstrumentType `json:"instType"`
+		Ccy              string              `json:"ccy"`
+		Lever            okex.JSONFloat64    `json:"lever"`
+		OpenAvgPx        okex.JSONFloat64    `json:"openAvgPx"`
+		CloseAvgPx       okex.JSONFloat64    `json:"closeAvgPx"`
+		CloseTotalAmount okex.JSONFloat64    `json:"closeTotalAmount"`
+		Pnl              okex.JSONFloat64    `json:"closeUpl"`
+		PnlRatio         okex.JSONFloat64    `json:"pnlRatio"`
+		Fee              okex.JSONFloat64    `json:"fee"`
+		FundingFee       okex.JSONFloat64    `json:"fundingFee"`
+		RealizedPnl      okex.JSONFloat64    `json:"realizedPnl"` // Pnl + Fee + FundingFee
+		PosSide          okex.PositionSide   `json:"posSide"`
+		MgnMode          okex.MarginMode     `json:"mgnMode"`
+		CloseTime        okex.JSONTime       `json:"cTime"`
+	}
 	PositionAndAccountRiskBalanceData struct {
 		Ccy   string           `json:"ccy"`
 		Eq    okex.JSONFloat64 `json:"eq"`

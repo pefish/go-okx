@@ -85,6 +85,20 @@ func (c *Account) GetAccountAndPositionRisk(req requests.GetAccountAndPositionRi
 	return
 }
 
+// func (c *Account) GetHistoryPositions(req requests.GetHistoryPositions) (response responses.GetHistoryPositions, err error) {
+// 	p := "/priapi/v5/account/history-positions"
+// 	m := okex.S2M(req)
+// 	res, err := c.client.Do(http.MethodGet, p, true, m)
+// 	if err != nil {
+// 		return
+// 	}
+// 	defer res.Body.Close()
+// 	d := json.NewDecoder(res.Body)
+// 	err = d.Decode(&response)
+
+// 	return
+// }
+
 // GetBills
 // Retrieve the bills of the account. The bill refers to all transaction records that result in changing the balance of an account. Pagination is supported, and the response is sorted with the most recent first. This endpoint can retrieve data from the last 7 days.
 //
