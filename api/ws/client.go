@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	go_logger "github.com/pefish/go-logger"
+	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/events"
 	"github.com/pkg/errors"
@@ -37,7 +37,7 @@ type ClientWs struct {
 	Public        *Public
 	Trade         *Trade
 	ctx           context.Context
-	logger        go_logger.InterfaceLogger
+	logger        i_logger.ILogger
 }
 
 const (
@@ -50,6 +50,7 @@ const (
 // NewClient returns a pointer to a fresh ClientWs
 func NewClient(
 	ctx context.Context,
+	logger i_logger.ILogger,
 	apiKey,
 	secretKey,
 	passphrase string,
@@ -57,6 +58,7 @@ func NewClient(
 ) *ClientWs {
 	ctx, cancel := context.WithCancel(ctx)
 	c := &ClientWs{
+		logger:     logger,
 		apiKey:     apiKey,
 		secretKey:  []byte(secretKey),
 		passphrase: passphrase,
@@ -67,11 +69,6 @@ func NewClient(
 	c.Private = NewPrivate(c)
 	c.Public = NewPublic(c)
 	c.Trade = NewTrade(c)
-	return c
-}
-
-func (c *ClientWs) SetLogger(logger go_logger.InterfaceLogger) *ClientWs {
-	c.logger = logger
 	return c
 }
 

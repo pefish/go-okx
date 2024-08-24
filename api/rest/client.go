@@ -13,7 +13,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	go_logger "github.com/pefish/go-logger"
+	i_logger "github.com/pefish/go-interface/i-logger"
+	t_logger "github.com/pefish/go-interface/t-logger"
 	okex "github.com/pefish/go-okx"
 	requests "github.com/pefish/go-okx/requests/rest/public"
 	responses "github.com/pefish/go-okx/responses/public_data"
@@ -34,12 +35,20 @@ type ClientRest struct {
 	destination okex.Destination
 	baseURL     okex.BaseURL
 	client      *http.Client
-	logger      go_logger.InterfaceLogger
+	logger      i_logger.ILogger
 }
 
 // NewClient returns a pointer to a fresh ClientRest
-func NewClient(apiKey, secretKey, passphrase string, baseURL okex.BaseURL, destination okex.Destination) *ClientRest {
+func NewClient(
+	logger i_logger.ILogger,
+	apiKey,
+	secretKey,
+	passphrase string,
+	baseURL okex.BaseURL,
+	destination okex.Destination,
+) *ClientRest {
 	c := &ClientRest{
+		logger:      logger,
 		apiKey:      apiKey,
 		secretKey:   []byte(secretKey),
 		passphrase:  passphrase,
@@ -54,11 +63,6 @@ func NewClient(apiKey, secretKey, passphrase string, baseURL okex.BaseURL, desti
 	c.Market = NewMarket(c)
 	c.PublicData = NewPublicData(c)
 	c.TradeData = NewTradeData(c)
-	return c
-}
-
-func (c *ClientRest) SetLogger(logger go_logger.InterfaceLogger) *ClientRest {
-	c.logger = logger
 	return c
 }
 
@@ -116,7 +120,7 @@ func (c *ClientRest) Do(method, path string, private bool, params ...map[string]
 		r.Header.Add("x-simulated-trading", "1")
 	}
 	uuidStr := ""
-	if c.logger.IsDebug() {
+	if c.logger.Level() == t_logger.Level_DEBUG {
 		u, err := uuid.NewUUID()
 		if err != nil {
 			return nil, err
@@ -133,7 +137,7 @@ func (c *ClientRest) Do(method, path string, private bool, params ...map[string]
 	if err != nil {
 		return nil, err
 	}
-	if c.logger.IsDebug() {
+	if c.logger.Level() == t_logger.Level_DEBUG {
 		dump, err := httputil.DumpResponse(res, true)
 		if nil != err {
 			c.logger.DebugF("[go-okx] Error: %#v", err)
