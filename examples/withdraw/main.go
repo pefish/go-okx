@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
 	"github.com/pefish/go-okx/requests/rest/funding"
-	"github.com/pefish/go-okx/requests/rest/trade"
 	"github.com/pkg/errors"
 )
 
-var toAddress = ""
+var toAddress = "5BnsHy3CV2SjefwMPQ4pwQPVmigxA8R7gUZypRNsZqxp"
 var amount = 0.1
 
 func main() {
@@ -43,39 +44,55 @@ func do() error {
 		return err
 	}
 
-	placeOrderRes, err := client.Rest.Funding.Withdrawal(funding.Withdrawal{
-		Ccy:    "SOL",
-		Chain:  "sol",
-		ToAddr: toAddress,
-		Amt:    amount,
-		Dest:   okex.WithdrawalDigitalAddressDestination,
+	withdrawID := uuid.NewString()
+	withdrawalRes, err := client.Rest.Funding.Withdrawal(funding.Withdrawal{
+		Ccy:      "SOL",
+		Chain:    "SOL-Solana",
+		ToAddr:   toAddress,
+		Amt:      amount,
+		Type:     okex.WithdrawalDigitalAddressDestination,
+		ClientID: withdrawID,
 	})
 	if err != nil {
 		return err
 	}
 
-	if placeOrderRes.Code != 0 {
-		return errors.Errorf("PlaceOrder failed. err: %s, code: %d", placeOrderRes.Msg, placeOrderRes.Code)
+	if withdrawalRes.Code != 0 {
+		return errors.Errorf("withdrawal failed. err: %s, code: %d", withdrawalRes.Msg, withdrawalRes.Code)
 	}
 
-	fmt.Println(placeOrderRes.PlaceOrders[0].OrdID)
+	fmt.Printf("<WdID: %d>\n", int64(withdrawalRes.Withdrawals[0].WdID))
 
-	getOrderDetailRes, err := client.Rest.Trade.GetOrderDetail(trade.OrderDetails{
-		InstID: symbol,
-		OrdID:  placeOrderRes.PlaceOrders[0].OrdID,
-	})
-	if err != nil {
-		return err
-	}
-	if getOrderDetailRes.Code != 0 {
-		return errors.Errorf("GetOrderDetail failed. err: %s, code: %d", getOrderDetailRes.Msg, getOrderDetailRes.Code)
-	}
+	timer := time.NewTimer(0)
+watchWithdraw:
+	for {
+		select {
+		case <-timer.C:
+			getWithdrawalHistoryRes, err := client.Rest.Funding.GetWithdrawalHistory(funding.GetWithdrawalHistory{
+				ClientID: withdrawID,
+			})
+			if err != nil {
+				return err
+			}
+			if getWithdrawalHistoryRes.Code != 0 {
+				return errors.Errorf("getWithdrawalHistory failed. err: %s, code: %d", getWithdrawalHistoryRes.Msg, getWithdrawalHistoryRes.Code)
+			}
+			switch getWithdrawalHistoryRes.WithdrawalHistories[0].State {
+			case -2:
+				return errors.New("提现 Canceled")
+			case -1:
+				return errors.New("提现 Failed")
+			case 2:
+				break watchWithdraw
+			default:
+				fmt.Printf("继续监听提币进程...")
+				timer.Reset(3 * time.Second)
+				continue
+			}
 
-	fmt.Printf(`
-	AvgPx: %f
-	`,
-		float64(getOrderDetailRes.Orders[0].AvgPx),
-	)
+		}
+	}
+	fmt.Printf("提币成功\n")
 
 	return nil
 }
