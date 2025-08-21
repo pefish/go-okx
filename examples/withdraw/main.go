@@ -4,44 +4,51 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/joho/godotenv"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
+	"github.com/pefish/go-okx/requests/rest/funding"
 	"github.com/pefish/go-okx/requests/rest/trade"
 	"github.com/pkg/errors"
 )
 
+var toAddress = ""
+var amount = 0.1
+
 func main() {
+	envMap, _ := godotenv.Read("./.env")
+	for k, v := range envMap {
+		os.Setenv(k, v)
+	}
+
 	err := do()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("%+v", err)
 	}
 }
 
 func do() error {
-	symbol := "BTC-USDT-SWAP"
-
 	client, err := api.NewClient(
 		context.Background(),
 		&i_logger.DefaultLogger,
-		"9c5760c6-ff0c-4e24-9bca-e60dc989bf46",
-		"",
-		":",
+		os.Getenv("API_KEY"),
+		os.Getenv("API_SECRET"),
+		os.Getenv("API_PASS"),
 		okex.NormalServer,
 	)
 	if err != nil {
 		return err
 	}
 
-	placeOrderRes, err := client.Rest.Trade.PlaceOrder([]trade.PlaceOrder{
-		{
-			InstID:  symbol,
-			TdMode:  okex.TradeCrossMode,
-			Side:    okex.OrderBuy,
-			OrdType: okex.OrderMarket,
-			Sz:      1,
-		},
+	placeOrderRes, err := client.Rest.Funding.Withdrawal(funding.Withdrawal{
+		Ccy:    "SOL",
+		Chain:  "sol",
+		ToAddr: toAddress,
+		Amt:    amount,
+		Dest:   okex.WithdrawalDigitalAddressDestination,
 	})
 	if err != nil {
 		return err

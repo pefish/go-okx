@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
 	okx_requests_account "github.com/pefish/go-okx/requests/rest/account"
@@ -23,6 +24,7 @@ func do() error {
 
 	client, err := api.NewClient(
 		context.Background(),
+		&i_logger.DefaultLogger,
 		"9c5760c6-ff0c-4e24-9bca-e60dc989bf46",
 		"",
 		":",

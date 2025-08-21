@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
+	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
 	"github.com/pefish/go-okx/events"
 	"github.com/pefish/go-okx/events/public"
-	"log"
 )
 
 func main() {
@@ -20,6 +22,7 @@ func main() {
 func do() error {
 	client, err := api.NewClient(
 		context.Background(),
+		&i_logger.DefaultLogger,
 		"YOUR-API-KEY",
 		"YOUR-SECRET-KEY",
 		"YOUR-PASS-PHRASE",
