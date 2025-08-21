@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	okex "github.com/pefish/go-okx"
 	"github.com/pefish/go-okx/api"
 	"github.com/pefish/go-okx/requests/rest/funding"
+	go_random "github.com/pefish/go-random"
 	"github.com/pkg/errors"
 )
 
@@ -44,7 +44,8 @@ func do() error {
 		return err
 	}
 
-	withdrawID := uuid.NewString()
+	// 29bdc6c7-e3e6-4694-a2a2-08f6cf73939e
+	withdrawID := go_random.MustRandomString(32)
 	withdrawalRes, err := client.Rest.Funding.Withdrawal(funding.Withdrawal{
 		Ccy:      "SOL",
 		Chain:    "SOL-Solana",

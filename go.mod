@@ -13,5 +13,6 @@ require (
 
 require (
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/pefish/go-random v0.2.9 // indirect
 	golang.org/x/net v0.17.0 // indirect
 )
