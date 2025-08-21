@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var toAddress = "5BnsHy3CV2SjefwMPQ4pwQPVmigxA8R7gUZypRNsZqxp:"
+var toAddress = "5BnsHy3CV2SjefwMPQ4pwQPVmigxA8R7gUZypRNsZqxp"
 var amount = 0.1
 
 func main() {
