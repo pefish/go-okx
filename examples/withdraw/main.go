@@ -44,7 +44,6 @@ func do() error {
 		return err
 	}
 
-	// 29bdc6c7-e3e6-4694-a2a2-08f6cf73939e
 	withdrawID := go_random.MustRandomStringFromDic("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 32)
 	withdrawalRes, err := client.Rest.Funding.Withdrawal(funding.Withdrawal{
 		Ccy:      "SOL",
@@ -86,7 +85,7 @@ watchWithdraw:
 			case 2:
 				break watchWithdraw
 			default:
-				fmt.Printf("继续监听提币进程...")
+				fmt.Printf("继续监听提币进程...\n")
 				timer.Reset(3 * time.Second)
 				continue
 			}
