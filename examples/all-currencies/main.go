@@ -51,7 +51,18 @@ func do() error {
 	}
 
 	for _, currencyInfo := range getCurrenciesRes.Currencies {
-		fmt.Printf("<CCY: %s> <Chain: %s> \n", currencyInfo.Ccy, currencyInfo.Chain)
+		if currencyInfo.Ccy == "SOL" {
+			fmt.Printf(`
+<CCY: %s>
+<Chain: %s>
+<Name: %s>
+`,
+				currencyInfo.Ccy,
+				currencyInfo.Chain,
+				currencyInfo.Name,
+			)
+		}
+
 	}
 
 	return nil
